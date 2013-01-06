@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System.IO.CFBF
 {
+
     public struct Consts
     {       
         public const uint MAXREGSET = 0xFFFFFFFA;
