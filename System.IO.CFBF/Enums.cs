@@ -26,4 +26,42 @@ namespace System.IO.CFBF
         BLACK = 0x01,
     }
 
+    /// <summary>
+    /// Each sector, except for the header, is identified by a non-negative 32-bit sector number. 
+    /// The following sector numbers above 0xFFFFFFFA are reserved, and MUST NOT be used to 
+    /// identify the location of a sector in a compound file.
+    /// </summary>
+    public enum SectorName : uint
+    {
+        /// <summary>
+        /// Regular sector number
+        /// </summary>
+        REGSECT,
+        
+        /// <summary>
+        /// Maximum regular sector number
+        /// </summary>
+        MAXREGSECT = 0xFFFFFFFA, //-1
+
+        /// <summary>
+        /// End of linked chain of sectors
+        /// </summary>
+        ENDOFCHAIN = 0xFFFFFFFE, //-2
+
+        /// <summary>
+        /// Specifies unallocated sector in the FAT, Mini FAT, or DIFAT
+        /// </summary>
+        FREESECT = 0xFFFFFFFF, //-1
+
+        /// <summary>
+        /// Specifies a FAT sector in the FAT
+        /// </summary>
+        FATSECT = 0xFFFFFFFD, //-3
+
+        /// <summary>
+        /// Specifies a DIFAT sector in the FAT
+        /// </summary>
+        DIFSECT = 0xFFFFFFC, //-4
+    }
+
 }
