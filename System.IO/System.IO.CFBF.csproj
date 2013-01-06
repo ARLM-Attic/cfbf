@@ -45,13 +45,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CLASSID.cs" />
     <Compile Include="CompoundFileBinaryFileFormatReader.cs" />
     <Compile Include="Consts.cs" />
     <Compile Include="DirectoryEntry.cs" />
+    <Compile Include="Enums.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="FILETIME.cs" />
     <Compile Include="Header.cs" />
     <Compile Include="InvalidCFBFException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StreamHelper.cs" />
+    <Compile Include="SYSTEMTIME.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
