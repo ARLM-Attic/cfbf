@@ -9,7 +9,7 @@ namespace System.IO.CFBF
     /// <summary>
     /// Coumpound File Reader
     /// </summary>
-    public unsafe class CompoundFileBinaryFileFormatReader
+    public unsafe class CompoundFileBinaryFileFormatReader : IDisposable
     {
         private ushort SectorSize;
 
@@ -41,6 +41,8 @@ namespace System.IO.CFBF
             private set;
         }
 
+        private bool disposed = false; 
+
         #region Constructor
         private CompoundFileBinaryFileFormatReader()
         {
@@ -64,9 +66,6 @@ namespace System.IO.CFBF
         }
         #endregion
 
-        /// <summary>
-        /// Parse CFBF file
-        /// </summary>
         private void ParseCFBF()
         {
             #region parsing file cfbf
@@ -290,6 +289,36 @@ namespace System.IO.CFBF
                 }
             }
             return sectorNumbers;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    // Dispose managed resources.
+                    if (this.cfbfStream != null )
+                    {
+                        this.cfbfStream.Close();
+                        this.cfbfStream.Dispose();
+                    }
+                }
+
+                // There are no unmanaged resources to release, but
+                // if we add them, they need to be released here.
+            }
+            disposed = true;
+
+            // If it is available, make the call to the
+            // base class's Dispose(Boolean) method
+            Dispose(disposing);
         }
     }
 }
