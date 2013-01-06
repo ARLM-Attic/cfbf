@@ -125,7 +125,7 @@ namespace System.IO.CFBF
             for (int i = 0; i < this.Header.NumberFATSectors; i++)
             {
                 if (i == 0)                    
-                    if ( this.Header.FirstDIFATSectorLocation == Consts.ENDOFCHAIN )
+                    if ( this.Header.FirstDIFATSectorLocation == (uint)SectorName.ENDOFCHAIN )
                         cfbfStream.Position = 512 + (0 * this.SectorSize);
                     else
                         cfbfStream.Position = 512 + (this.Header.FirstDIFATSectorLocation * this.SectorSize);
@@ -144,7 +144,7 @@ namespace System.IO.CFBF
             var results = new List<uint>();
             uint valueId = this.Header.FirstMiniFATSectorLocation;// documentHeader.SecIDOfFirstSectorOfTheShortSector;
 
-            while (valueId != Consts.ENDOFCHAIN)
+            while (valueId != (uint)SectorName.ENDOFCHAIN)
             {
                 cfbfStream.Position = 512 + (valueId * this.SectorSize);
                 results.AddRange(readSectorChain(cfbfStream));
@@ -209,7 +209,7 @@ namespace System.IO.CFBF
             uint valueId;
             valueId = this.Header.FirstDirectorySectorLocation;
 
-            while (valueId != Consts.ENDOFCHAIN)
+            while (valueId != (uint)SectorName.ENDOFCHAIN)
             {
                 cfbfStream.Position = 512 + (valueId * this.SectorSize);
 
@@ -285,7 +285,7 @@ namespace System.IO.CFBF
                 if (continueToAdd)
                 {
                     sectorNumbers.Add(sectorId);
-                    continueToAdd = sectorId != Consts.FREESECT;
+                    continueToAdd = sectorId != (uint)SectorName.FREESECT;
                 }
             }
             return sectorNumbers;
