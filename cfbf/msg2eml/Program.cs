@@ -16,14 +16,7 @@ namespace msg2eml
             var cfbf = new System.IO.CFBF.CompoundFileBinaryFileFormatReader(filePath);
 
 
-            //var i = cfbf.DirectoryEntries;
-
-            //var reader = new CompoundDocumentReader();
-            //IList<ResultSet> lista = reader.Read( new FileStream(filePath, FileMode.Open));
-
-
-
-            Console.WriteLine();
+           Console.WriteLine();
         }
     }
 }
