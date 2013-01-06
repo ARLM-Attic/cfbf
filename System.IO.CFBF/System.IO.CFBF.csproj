@@ -47,6 +47,9 @@
   <ItemGroup>
     <Compile Include="CLASSID.cs" />
     <Compile Include="CompoundFileBinaryFileFormatReader.cs" />
+    <Compile Include="Consts.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DirectoryEntry.cs" />
     <Compile Include="Enums.cs">
       <SubType>Code</SubType>
