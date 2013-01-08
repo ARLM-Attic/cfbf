@@ -45,23 +45,34 @@ namespace System.IO.CFBF
 
         /// <summary>
         /// End of linked chain of sectors
+        /// –2 End Of Chain SecID Trailing SecID in a SecID chain
         /// </summary>
         ENDOFCHAIN = 0xFFFFFFFE, //-2
 
         /// <summary>
         /// Specifies unallocated sector in the FAT, Mini FAT, or DIFAT
+        /// –1 Free SecID Free sector, may exist in the file, but is not part of any stream
         /// </summary>
         FREESECT = 0xFFFFFFFF, //-1
 
         /// <summary>
         /// Specifies a FAT sector in the FAT
+        /// –3 SAT SecID Sector is used by the sector allocation table
         /// </summary>
         FATSECT = 0xFFFFFFFD, //-3
 
         /// <summary>
         /// Specifies a DIFAT sector in the FAT
+        /// –4 MSAT SecID Sector is used by the master sector allocation table
         /// </summary>
         DIFSECT = 0xFFFFFFC, //-4
     }
 
+
+    public enum ByteOrder : ushort
+    { 
+        LITTLE_ENDIAN = 0xFEFF,
+
+        BIG_ENDIAN = 0xFFFE
+    }
 }
