@@ -46,7 +46,7 @@ namespace System.IO.CFBF
         /// This field is a byte order mark for all integer fields, specifying little-endian byte order.
         /// </summary>
         [FieldOffset(28)]
-        public ushort ByteOrder;
+        public ByteOrder ByteOrder;
 
         /// <summary>
         /// Sector Shift (2 bytes): This field MUST be set to 0x0009, or 0x000c, depending on the Major Version field. This field specifies the sector size of the compound file as a power of 2.
@@ -106,24 +106,31 @@ namespace System.IO.CFBF
 
         /// <summary>
         /// First Mini FAT Sector Location (4 bytes): This integer field contains the starting sector number for the mini FAT.
+        /// 
+        /// SecID of first sector of the short-sector allocation table (➜6.2), or –2 (End Of ChainSecID, ➜3.1) if not extant
         /// </summary>
         [FieldOffset(60)]
         public uint FirstMiniFATSectorLocation;
 
         /// <summary>
         /// Number of Mini FAT Sectors (4 bytes): This integer field contains the count of the number of mini FAT sectors in the compound file.
+        /// Total number of sectors used for the short-sector allocation table
         /// </summary>
         [FieldOffset(64)]
         public uint NumberMiniFATSectors;
 
         /// <summary>
         /// First DIFAT Sector Location (4 bytes): This integer field contains the starting sector number for the DIFAT.
+        /// 
+        /// SecID of first sector of the master sector allocation table (➜5.1), or –2 (End Of Chain SecID, ➜3.1) if no additional sectors used
         /// </summary>
         [FieldOffset(68)]
         public uint FirstDIFATSectorLocation;
 
         /// <summary>
         /// Number of DIFAT Sectors (4 bytes): This integer field contains the count of the number of DIFAT sectors in the compound file.
+        /// 
+        /// Total number of sectors used for the master sector allocation table
         /// </summary>
         [FieldOffset(72)]
         public uint NumberDIFATSectors;
@@ -131,6 +138,9 @@ namespace System.IO.CFBF
         /// <summary>
         /// DIFAT (436 bytes): This array of 32-bit integer fields contains the first 109 FAT sector locations of the compound file.
         /// For version 4 compound files, the header size (512 bytes) is less than the sector size (4096 bytes), so the remaining part of the header (3584 bytes) MUST be filled with all zeroes.
+        /// 
+        /// First part of the master sector allocation table containing 109 SecIDs 8
+        /// MSAT
         /// </summary>
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 436)]
         [FieldOffset(76)]
