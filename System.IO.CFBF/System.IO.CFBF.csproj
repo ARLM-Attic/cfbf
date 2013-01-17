@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ByteArrayExtension.cs" />
     <Compile Include="CLASSID.cs" />
     <Compile Include="CompoundFileBinaryFileFormatReader.cs" />
     <Compile Include="DirectoryEntry.cs" />
