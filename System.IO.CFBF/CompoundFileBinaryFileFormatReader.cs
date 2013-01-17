@@ -13,6 +13,8 @@ namespace System.IO.CFBF
     {
         private ushort SectorSize;
 
+        private long NumberOfSIDs;
+
         public Header Header;
 
         private Stream cfbfStream = null;
@@ -23,6 +25,15 @@ namespace System.IO.CFBF
             private set;
         }
 
+        /// <summary>
+        /// The sector allocation table (SAT) is an array of SecIDs. It contains the SecID chain of all user streams (except
+        /// short-streams) and of the remaining internal control streams (the short-stream container stream, the shortsector
+        /// allocation table, and the directory). The size of the SAT (number of SecIDs) is equal to the number of
+        /// /// existing sectors in the compound document file.
+        /// 
+        /// The SAT is built by reading and concatenating the contents of all sectors given in the MSAT. 
+        /// The sectors have to be read according to the order of the SecIDs in the MSAT.
+        /// </summary>
         internal uint[] SectorAllocationTable
         {
             get;
@@ -35,13 +46,13 @@ namespace System.IO.CFBF
             private set;
         }
 
-        internal IList<DirectoryEntry> DirectoryEntries
+        public IList<DirectoryEntry> DirectoryEntries
         {
             get;
             private set;
         }
 
-        private bool disposed = false; 
+        private bool disposed = false;
 
         #region Constructor
         private CompoundFileBinaryFileFormatReader()
@@ -83,22 +94,22 @@ namespace System.IO.CFBF
                 #endregion
 
                 #region SECTOR SIZE
-                if (Header.SectorShift == 0x0009 || Header.SectorShift == 0x000c)
-                {
-                    if (Header.MajorVersion == 0x0003 && Header.SectorShift == 0x0009)
-                        SectorSize = 512;
+                if (Header.MajorVersion == 0x0003 && Header.SectorShift == 0x0009)
+                    SectorSize = 512;
 
-                    if (Header.MajorVersion == 0x0004 && Header.SectorShift == 0x000C)
-                        SectorSize = 4096;
-                }
+                if (Header.MajorVersion == 0x0004 && Header.SectorShift == 0x000C)
+                    SectorSize = 4096;
                 #endregion
 
+                NumberOfSIDs = (cfbfStream.Length / SectorSize) - 1;
+
                 #region MASTER SECTOR ALLOCATION TABLE
-                MasterSectorAllocationTable = readMasterSectorAllocationTable();
+                //MasterSectorAllocationTable = readMasterSectorAllocationTable();
+                MasterSectorAllocationTable = ReadMasterSectorAllocationTable();
                 #endregion
 
                 #region SECTOR ALLOCATION TABLE
-                SectorAllocationTable = readSectorAllocationTable();
+                SectorAllocationTable = ReadSectorAllocationTable();
                 #endregion
 
                 #region DIRECTORY STORAGE
@@ -106,8 +117,9 @@ namespace System.IO.CFBF
                 #endregion
 
                 #region SHORT ALLOCATION TABLE
-                ShortSectorAllocationTable = readShortSectorAllocationTable();
+                ShortSectorAllocationTable = ReadShortSectorAllocationTable();
                 #endregion
+
 
 
             }
@@ -119,114 +131,87 @@ namespace System.IO.CFBF
             return DirectoryEntries.Where(root => root.ObjectType == ObjectType.ROOT_STORAGE_OBJECT).FirstOrDefault();
         }
 
-        private uint[] readSectorAllocationTable()
+        /// <summary>
+        /// Read Sector Allocation Table
+        /// </summary>
+        /// <returns></returns>
+        private uint[] ReadSectorAllocationTable()
         {
             var results = new List<uint>();
-            for (int i = 0; i < this.Header.NumberFATSectors; i++)
+            for (int i = 0; i < this.MasterSectorAllocationTable.Length; i++)
             {
-                if (i == 0)                    
-                    if ( this.Header.FirstDIFATSectorLocation == (uint)SectorName.ENDOFCHAIN )
-                        cfbfStream.Position = 512 + (0 * this.SectorSize);
-                    else
-                        cfbfStream.Position = 512 + (this.Header.FirstDIFATSectorLocation * this.SectorSize);
-                else
-                    cfbfStream.Position = 512 + (MasterSectorAllocationTable[i] * this.SectorSize);
-
-                results.AddRange(readSectorChain(cfbfStream));
+                cfbfStream.Position = SectorPosition(MasterSectorAllocationTable[i]);
+                results.AddRange(readSectorChain2(cfbfStream));
             }
-
             return results.ToArray();
-
         }
 
-        private uint[] readShortSectorAllocationTable()
+        private uint[] ReadShortSectorAllocationTable()
         {
             var results = new List<uint>();
             uint valueId = this.Header.FirstMiniFATSectorLocation;// documentHeader.SecIDOfFirstSectorOfTheShortSector;
 
             while (valueId != (uint)SectorName.ENDOFCHAIN)
             {
-                cfbfStream.Position = 512 + (valueId * this.SectorSize);
+                cfbfStream.Position = SectorPosition(valueId);
                 results.AddRange(readSectorChain(cfbfStream));
+
                 valueId = SectorAllocationTable[valueId];
             }
             return results.ToArray();
         }
 
-        private uint[] readMasterSectorAllocationTable()
+        internal uint[] ReadMasterSectorAllocationTable()
         {
-            var masterSectorAllocationTable = new List<uint>();
-            int location = 0;
+            var MSAT = new List<uint>();
 
-            Stream masterAllocationBytes = null;
-            try
+            //Read first the 109 FAT Sectors
+            MSAT.AddRange(this.Header.DIFAT.ToUInt32());
+
+            if (this.Header.NumberFATSectors > (this.Header.DIFAT.Length / 4))
             {
-                masterAllocationBytes = new MemoryStream(this.Header.DIFAT, false);
-                masterAllocationBytes.Position = 0;
-                
-                for (int i = 0; i < masterAllocationBytes.Length / 4; i++)
+                //Get The Next Sector for DIFAT
+                uint sectorid = this.Header.FirstDIFATSectorLocation;
+
+                //loop all sectors while an end of chain not found
+                while (sectorid != (uint)SectorName.ENDOFCHAIN)
                 {
-                    var sector = masterAllocationBytes.ReadBytes(4);
-                    location = location + 4;
-                    uint sectorId;
+                    var offsetDFATSector = SectorPosition(sectorid);
+                    cfbfStream.Position = offsetDFATSector;
 
-                    if (i < this.Header.NumberFATSectors)
-                    {
-                        sectorId = BitConverter.ToUInt32(sector, 0);
+                    var buffer = cfbfStream.ReadBytes(this.SectorSize);
+                    var uintBuffer = buffer.ToUInt32((uint)SectorName.FREESECT, (uint)SectorName.ENDOFCHAIN);
+                    MSAT.AddRange(uintBuffer);
 
-                        if (masterAllocationBytes.Length <= masterAllocationBytes.Position)
-                        {
-                            // read in next sector for master allocation table
-                            masterAllocationBytes.Close();
-                            masterAllocationBytes.Dispose();
-                            cfbfStream.Position = 512 + this.SectorSize * sectorId;
-                            masterAllocationBytes = new MemoryStream(cfbfStream.ReadBytes(this.SectorSize), true);
-                            masterAllocationBytes.Position = 0;
-                            location = 0;
-                        }
-                        else
-                        {
-                            masterSectorAllocationTable.Add(sectorId);
-                        }
-                    }
+                    //Get the last Sector ID
+                    sectorid = BitConverter.ToUInt32(buffer.ReadBytes(this.SectorSize - 4, 4), 0);
                 }
             }
-            finally
-            {
-                if (masterAllocationBytes != null)
-                {
-                    masterAllocationBytes.Close();
-                    masterAllocationBytes.Dispose();
-                }
-            }
-            return masterSectorAllocationTable.ToArray();
+
+            return MSAT.ToArray();
         }
 
         private IList<DirectoryEntry> readDirectoryStorage()
         {
             IList<DirectoryEntry> Directories = new List<DirectoryEntry>();
-            
-            uint valueId;
-            valueId = this.Header.FirstDirectorySectorLocation;
+            uint valueId = this.Header.FirstDirectorySectorLocation;
 
             while (valueId != (uint)SectorName.ENDOFCHAIN)
             {
-                cfbfStream.Position = 512 + (valueId * this.SectorSize);
+
+                cfbfStream.Position = SectorPosition(valueId);
 
                 for (int j = 0; j < this.SectorSize / 128; j++)
                 {
-                    //var dir = new Directory(Directories.Count, inStream);
-                    var dir = new DirectoryEntry();
-
-                    byte[] buffer = cfbfStream.ReadBytes(Marshal.SizeOf(typeof(DirectoryEntry)));
-                    GCHandle pinnedPacket = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                    dir = (DirectoryEntry)Marshal.PtrToStructure(pinnedPacket.AddrOfPinnedObject(), typeof(DirectoryEntry));
+                    GCHandle pinnedPacket = GCHandle.Alloc(cfbfStream.ReadBytes(Marshal.SizeOf(typeof(DirectoryEntry))), GCHandleType.Pinned);
+                    var dir = (DirectoryEntry)Marshal.PtrToStructure(pinnedPacket.AddrOfPinnedObject(), typeof(DirectoryEntry));
                     pinnedPacket.Free();
 
                     if (dir.StreamByte > 0)
                         Directories.Add(dir);
+
                 }
-                valueId = SectorAllocationTable[(int)valueId];
+                valueId = SectorAllocationTable[valueId];
             }
             return Directories;
         }
@@ -270,6 +255,29 @@ namespace System.IO.CFBF
         //    return outStream;
         //}
 
+        private IList<uint> readSectorChain2(Stream inStream)
+        {
+            var sectorNumbers = new List<uint>();
+            bool continueToAdd = true;
+
+            for (int i = 0; i < this.SectorSize / 4; i++)
+            {
+                //var vector = new byte[4];
+                //inStream.Read(vector, 0, 4);
+
+                var vector = inStream.ReadBytes(4);
+                var sectorId = BitConverter.ToUInt32(vector, 0);
+
+                if (continueToAdd)
+                {
+                    sectorNumbers.Add(sectorId);
+                    continueToAdd = sectorId != (uint)SectorName.FREESECT;
+                }
+            }
+            return sectorNumbers;
+        }
+
+
         private IList<uint> readSectorChain(Stream inStream)
         {
             var sectorNumbers = new List<uint>();
@@ -281,11 +289,11 @@ namespace System.IO.CFBF
                 inStream.Read(vector, 0, 4);
 
                 var sectorId = BitConverter.ToUInt32(vector, 0);
-                
+
                 if (continueToAdd)
                 {
                     sectorNumbers.Add(sectorId);
-                    continueToAdd = sectorId != (uint)SectorName.FREESECT;
+                    continueToAdd = (sectorId != (uint)SectorName.FREESECT);
                 }
             }
             return sectorNumbers;
@@ -304,7 +312,7 @@ namespace System.IO.CFBF
                 if (disposing)
                 {
                     // Dispose managed resources.
-                    if (this.cfbfStream != null )
+                    if (this.cfbfStream != null)
                     {
                         this.cfbfStream.Close();
                         this.cfbfStream.Dispose();
@@ -319,6 +327,11 @@ namespace System.IO.CFBF
             // If it is available, make the call to the
             // base class's Dispose(Boolean) method
             Dispose(disposing);
+        }
+
+        internal long SectorPosition(uint SecID)
+        {
+            return 512 + SecID * this.SectorSize;
         }
     }
 }
