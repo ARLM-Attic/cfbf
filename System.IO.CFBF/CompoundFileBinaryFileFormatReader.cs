@@ -11,7 +11,7 @@ namespace System.IO.CFBF
     /// </summary>
     public unsafe class CompoundFileBinaryFileFormatReader : IDisposable
     {
-        private ushort SectorSize;
+        public ushort SectorSize;
 
         private long NumberOfSIDs;
 
@@ -62,8 +62,11 @@ namespace System.IO.CFBF
 
         public CompoundFileBinaryFileFormatReader(Stream cfbfStream)
         {
+            if (cfbfStream.Length == 0)
+                throw new InvalidCFBFException("Invalid Coumpound File Binary File Format!");
+
             this.cfbfStream = cfbfStream;
-            ParseCFBF();
+            
         }
 
         public CompoundFileBinaryFileFormatReader(string FilePath)
@@ -73,62 +76,70 @@ namespace System.IO.CFBF
 
             this.cfbfStream = new FileStream(FilePath, FileMode.Open);
 
-            ParseCFBF();
+            if (cfbfStream.Length == 0)
+                throw new InvalidCFBFException("Invalid Coumpound File Binary File Format!");
         }
         #endregion
 
-        private void ParseCFBF()
+        public void Parse()
         {
             #region parsing file cfbf
-            using (var reader = new System.IO.BinaryReader(cfbfStream, ASCIIEncoding.ASCII))
-            {
-                //inizialize default offset to zero to read header
-                int offset = 0;
+            //inizialize default offset to zero to read header
+            int offset = 0;
 
-                #region READ HEADER FROM STREAM
-                //read buffer to cast it to the header
-                byte[] buffer = cfbfStream.ReadBytes(offset, Marshal.SizeOf(typeof(Header)), false);
-                GCHandle pinnedPacket = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                Header = (Header)Marshal.PtrToStructure(pinnedPacket.AddrOfPinnedObject(), typeof(Header));
-                pinnedPacket.Free();
-                #endregion
+            #region READ HEADER FROM STREAM
+            //read buffer to cast it to the header
+            byte[] buffer = cfbfStream.ReadBytes(offset, Marshal.SizeOf(typeof(Header)), false);
+            GCHandle pinnedPacket = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            Header = (Header)Marshal.PtrToStructure(pinnedPacket.AddrOfPinnedObject(), typeof(Header));
+            pinnedPacket.Free();
+            #endregion
 
-                #region SECTOR SIZE
-                if (Header.MajorVersion == 0x0003 && Header.SectorShift == 0x0009)
-                    SectorSize = 512;
+            #region SECTOR SIZE
+            if (Header.MajorVersion == 0x0003 && Header.SectorShift == 0x0009)
+                SectorSize = 512;
 
-                if (Header.MajorVersion == 0x0004 && Header.SectorShift == 0x000C)
-                    SectorSize = 4096;
-                #endregion
+            if (Header.MajorVersion == 0x0004 && Header.SectorShift == 0x000C)
+                SectorSize = 4096;
+            #endregion
 
-                NumberOfSIDs = (cfbfStream.Length / SectorSize) - 1;
+            NumberOfSIDs = (cfbfStream.Length / SectorSize) - 1;
 
-                #region MASTER SECTOR ALLOCATION TABLE
-                //MasterSectorAllocationTable = readMasterSectorAllocationTable();
-                MasterSectorAllocationTable = ReadMasterSectorAllocationTable();
-                #endregion
+            #region MASTER SECTOR ALLOCATION TABLE
+            //MasterSectorAllocationTable = readMasterSectorAllocationTable();
+            MasterSectorAllocationTable = ReadMasterSectorAllocationTable();
+            #endregion
 
-                #region SECTOR ALLOCATION TABLE
-                SectorAllocationTable = ReadSectorAllocationTable();
-                #endregion
+            #region SECTOR ALLOCATION TABLE
+            SectorAllocationTable = ReadSectorAllocationTable();
+            #endregion
 
-                #region DIRECTORY STORAGE
-                DirectoryEntries = readDirectoryStorage();
-                #endregion
+            #region DIRECTORY STORAGE
+            DirectoryEntries = readDirectoryStorage();
+            #endregion
 
-                #region SHORT ALLOCATION TABLE
-                ShortSectorAllocationTable = ReadShortSectorAllocationTable();
-                #endregion
+            #region SHORT ALLOCATION TABLE
+            ShortSectorAllocationTable = ReadShortSectorAllocationTable();
+            #endregion
 
-
-
-            }
             #endregion
         }
 
         public DirectoryEntry GetRootEntry()
         {
             return DirectoryEntries.Where(root => root.ObjectType == ObjectType.ROOT_STORAGE_OBJECT).FirstOrDefault();
+        }
+
+        public Stream GetDirectoryEntryStream(DirectoryEntry dir)
+        {
+            Stream stream = null;
+            
+            if (dir.IsStoredInShortStream)
+                stream = ReadShortStreamContainerStream(dir);
+            else
+                stream = ReadStream(dir);
+
+            return stream;
         }
 
         /// <summary>
@@ -161,7 +172,7 @@ namespace System.IO.CFBF
             return results.ToArray();
         }
 
-        internal uint[] ReadMasterSectorAllocationTable()
+        private uint[] ReadMasterSectorAllocationTable()
         {
             var MSAT = new List<uint>();
 
@@ -216,44 +227,47 @@ namespace System.IO.CFBF
             return Directories;
         }
 
-        //private static Stream readShortStreamContainerStream(Stream inStream, DocumentHeader documentHeader, int[] sectorAllocationTable, Directory logicalDir)
-        //{
-        //    var shortStreamContainerStream = new MemoryStream();
-        //    int valueId = logicalDir.SectorIdOfFirstSector;
-        //    int streamSize = logicalDir.TotalStreamSizeInBytes;
-        //    int bytesLeft = streamSize;
-        //    while (valueId != -2)
-        //    {
-        //        int amountToRead = bytesLeft < documentHeader.SizeOfSector ? bytesLeft : documentHeader.SizeOfSector;
-        //        inStream.Position = 512 + (valueId * documentHeader.SizeOfSector);
-        //        shortStreamContainerStream.Write(inStream.ReadStreamPart(amountToRead), 0, amountToRead);
-        //        valueId = sectorAllocationTable[valueId];
-        //        bytesLeft = bytesLeft - amountToRead;
-        //    }
-        //    return shortStreamContainerStream;
-        //}
+        private Stream ReadShortStreamContainerStream(DirectoryEntry dir)
+        {
+            var outStream = new MemoryStream();
+            var sectorId = dir.StartingSectorLocation;
+            var streamSize = dir.StreamByte;
+            var bytesLeft = streamSize;
+            var valueId = sectorId;
 
-        //private static Stream readGenericStream(Stream inStream, Directory logicalDir, int[] sectorAllocationTable, int sizeOfSector, int offset)
-        //{
-        //    var outStream = new MemoryStream();
+            while (valueId != (uint)SectorName.ENDOFCHAIN)
+            {
+                ulong amountToRead = bytesLeft < this.SectorSize ? bytesLeft : this.SectorSize;
+                cfbfStream.Position = SectorPosition(valueId);
+                outStream.Write(cfbfStream.ReadBytes((int)amountToRead), 0, (int)amountToRead);
+                valueId = ShortSectorAllocationTable[valueId];
+                bytesLeft = bytesLeft - amountToRead;
+            }
+            return outStream;
+        }
 
-        //    var sectorId = logicalDir.SectorIdOfFirstSector;
-        //    var streamSize = logicalDir.TotalStreamSizeInBytes;
+        private Stream ReadStream(DirectoryEntry dir)
+        {
+            var outStream = new MemoryStream();
+            var sectorId = dir.StartingSectorLocation;
+            var streamSize = dir.StreamByte;
+            var bytesLeft = streamSize;
+            var valueId = sectorId;
 
-        //    int bytesLeft = streamSize;
-        //    int valueId = sectorId;
-        //    while (valueId != -2)
-        //    {
-        //        int amountToRead = bytesLeft < sizeOfSector ? bytesLeft : sizeOfSector;
-        //        inStream.Position = offset + (valueId * sizeOfSector);
-        //        outStream.Write(inStream.ReadStreamPart(amountToRead), 0, amountToRead);
-        //        valueId = sectorAllocationTable[valueId];
-        //        bytesLeft = bytesLeft - amountToRead;
-        //    }
-        //    outStream.Flush();
-        //    outStream.Position = 0;
-        //    return outStream;
-        //}
+            while (valueId != (uint)SectorName.ENDOFCHAIN)
+            {
+                ulong amountToRead = bytesLeft < this.SectorSize ? bytesLeft : this.SectorSize;
+                cfbfStream.Position = SectorPosition(valueId);
+                outStream.Write(cfbfStream.ReadBytes((int)amountToRead), 0, (int)amountToRead);
+                valueId = SectorAllocationTable[valueId];
+                bytesLeft = bytesLeft - amountToRead;
+            }
+
+            outStream.Flush();
+            outStream.Position = 0;
+
+            return outStream;
+        }
 
         private IList<uint> readSectorChain2(Stream inStream)
         {
@@ -262,9 +276,6 @@ namespace System.IO.CFBF
 
             for (int i = 0; i < this.SectorSize / 4; i++)
             {
-                //var vector = new byte[4];
-                //inStream.Read(vector, 0, 4);
-
                 var vector = inStream.ReadBytes(4);
                 var sectorId = BitConverter.ToUInt32(vector, 0);
 
@@ -276,7 +287,6 @@ namespace System.IO.CFBF
             }
             return sectorNumbers;
         }
-
 
         private IList<uint> readSectorChain(Stream inStream)
         {
@@ -329,7 +339,7 @@ namespace System.IO.CFBF
             Dispose(disposing);
         }
 
-        internal long SectorPosition(uint SecID)
+        private long SectorPosition(uint SecID)
         {
             return 512 + SecID * this.SectorSize;
         }
