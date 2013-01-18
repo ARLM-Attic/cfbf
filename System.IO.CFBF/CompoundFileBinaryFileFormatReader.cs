@@ -106,7 +106,6 @@ namespace System.IO.CFBF
             NumberOfSIDs = (cfbfStream.Length / SectorSize) - 1;
 
             #region MASTER SECTOR ALLOCATION TABLE
-            //MasterSectorAllocationTable = readMasterSectorAllocationTable();
             MasterSectorAllocationTable = ReadMasterSectorAllocationTable();
             #endregion
 
@@ -125,6 +124,8 @@ namespace System.IO.CFBF
             #endregion
         }
 
+        
+
         public DirectoryEntry GetRootEntry()
         {
             return DirectoryEntries.Where(root => root.ObjectType == ObjectType.ROOT_STORAGE_OBJECT).FirstOrDefault();
@@ -142,6 +143,11 @@ namespace System.IO.CFBF
             return stream;
         }
 
+        public IList<DirectoryEntry> GetDirectoriesEntryByName(string directoryName)
+        {
+           return DirectoryEntries.Where(a=> a.DirectoryEntryName.Contains(directoryName)).ToList<DirectoryEntry>();
+        }
+
         /// <summary>
         /// Read Sector Allocation Table
         /// </summary>
@@ -149,10 +155,11 @@ namespace System.IO.CFBF
         private uint[] ReadSectorAllocationTable()
         {
             var results = new List<uint>();
+
             for (int i = 0; i < this.MasterSectorAllocationTable.Length; i++)
             {
                 cfbfStream.Position = SectorPosition(MasterSectorAllocationTable[i]);
-                results.AddRange(readSectorChain2(cfbfStream));
+                results.AddRange(ReadSectorChain(cfbfStream));
             }
             return results.ToArray();
         }
@@ -165,7 +172,7 @@ namespace System.IO.CFBF
             while (valueId != (uint)SectorName.ENDOFCHAIN)
             {
                 cfbfStream.Position = SectorPosition(valueId);
-                results.AddRange(readSectorChain(cfbfStream));
+                results.AddRange(ReadSectorChain(cfbfStream));
 
                 valueId = SectorAllocationTable[valueId];
             }
@@ -187,19 +194,31 @@ namespace System.IO.CFBF
                 //loop all sectors while an end of chain not found
                 while (sectorid != (uint)SectorName.ENDOFCHAIN)
                 {
-                    var offsetDFATSector = SectorPosition(sectorid);
-                    cfbfStream.Position = offsetDFATSector;
+                    cfbfStream.Position = SectorPosition(sectorid);
 
                     var buffer = cfbfStream.ReadBytes(this.SectorSize);
-                    var uintBuffer = buffer.ToUInt32((uint)SectorName.FREESECT, (uint)SectorName.ENDOFCHAIN);
-                    MSAT.AddRange(uintBuffer);
 
-                    //Get the last Sector ID
+                    MSAT.AddRange(buffer.ToUInt32());
+                    
                     sectorid = BitConverter.ToUInt32(buffer.ReadBytes(this.SectorSize - 4, 4), 0);
                 }
             }
 
             return MSAT.ToArray();
+        }
+
+        public void PrintDirectoriesEntryNames(string filePath)
+        {
+            StreamWriter writer = File.CreateText(filePath);
+
+            foreach (var entry in DirectoryEntries)
+            {
+                string s = string.Format("Direcotry Entry:{0}, Child ID: {1}, Left ID: {2}, Right ID: {3}", entry.DirectoryEntryName, entry.ChildID, entry.LeftSiblingID, entry.RightSiblingID);
+                writer.WriteLine(s);
+            }
+
+            writer.Close();
+            writer.Dispose();
         }
 
         private IList<DirectoryEntry> readDirectoryStorage()
@@ -209,19 +228,15 @@ namespace System.IO.CFBF
 
             while (valueId != (uint)SectorName.ENDOFCHAIN)
             {
-
                 cfbfStream.Position = SectorPosition(valueId);
-
-                for (int j = 0; j < this.SectorSize / 128; j++)
+                for (int j = 0; j < (this.SectorSize / 128); j++)
                 {
                     GCHandle pinnedPacket = GCHandle.Alloc(cfbfStream.ReadBytes(Marshal.SizeOf(typeof(DirectoryEntry))), GCHandleType.Pinned);
                     var dir = (DirectoryEntry)Marshal.PtrToStructure(pinnedPacket.AddrOfPinnedObject(), typeof(DirectoryEntry));
                     pinnedPacket.Free();
-
-                    if (dir.StreamByte > 0)
-                        Directories.Add(dir);
-
+                    Directories.Add(dir);
                 }
+
                 valueId = SectorAllocationTable[valueId];
             }
             return Directories;
@@ -269,41 +284,18 @@ namespace System.IO.CFBF
             return outStream;
         }
 
-        private IList<uint> readSectorChain2(Stream inStream)
+        private IList<uint> ReadSectorChain(Stream inStream)
         {
             var sectorNumbers = new List<uint>();
             bool continueToAdd = true;
 
-            for (int i = 0; i < this.SectorSize / 4; i++)
+            for (int i = 0; i < (this.SectorSize / 4); i++)
             {
-                var vector = inStream.ReadBytes(4);
-                var sectorId = BitConverter.ToUInt32(vector, 0);
-
+                var sectorId = BitConverter.ToUInt32(inStream.ReadBytes(4), 0);
                 if (continueToAdd)
                 {
                     sectorNumbers.Add(sectorId);
                     continueToAdd = sectorId != (uint)SectorName.FREESECT;
-                }
-            }
-            return sectorNumbers;
-        }
-
-        private IList<uint> readSectorChain(Stream inStream)
-        {
-            var sectorNumbers = new List<uint>();
-            bool continueToAdd = true;
-
-            for (int i = 0; i < this.SectorSize / 4; i++)
-            {
-                var vector = new byte[4];
-                inStream.Read(vector, 0, 4);
-
-                var sectorId = BitConverter.ToUInt32(vector, 0);
-
-                if (continueToAdd)
-                {
-                    sectorNumbers.Add(sectorId);
-                    continueToAdd = (sectorId != (uint)SectorName.FREESECT);
                 }
             }
             return sectorNumbers;
