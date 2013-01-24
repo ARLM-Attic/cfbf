@@ -122,9 +122,7 @@ namespace System.IO.CFBF
             #endregion
 
             #endregion
-        }
-
-        
+        }        
 
         public DirectoryEntry GetRootEntry()
         {
@@ -134,7 +132,7 @@ namespace System.IO.CFBF
         public Stream GetDirectoryEntryStream(DirectoryEntry dir)
         {
             Stream stream = null;
-            
+
             if (dir.IsStoredInShortStream)
                 stream = ReadShortStreamContainerStream(dir);
             else
@@ -147,11 +145,7 @@ namespace System.IO.CFBF
         {
            return DirectoryEntries.Where(a=> a.DirectoryEntryName.Contains(directoryName)).ToList<DirectoryEntry>();
         }
-
-        /// <summary>
-        /// Read Sector Allocation Table
-        /// </summary>
-        /// <returns></returns>
+      
         private uint[] ReadSectorAllocationTable()
         {
             var results = new List<uint>();
@@ -167,7 +161,7 @@ namespace System.IO.CFBF
         private uint[] ReadShortSectorAllocationTable()
         {
             var results = new List<uint>();
-            uint valueId = this.Header.FirstMiniFATSectorLocation;// documentHeader.SecIDOfFirstSectorOfTheShortSector;
+            uint valueId = this.Header.FirstMiniFATSectorLocation;
 
             while (valueId != (uint)SectorName.ENDOFCHAIN)
             {
@@ -195,11 +189,8 @@ namespace System.IO.CFBF
                 while (sectorid != (uint)SectorName.ENDOFCHAIN)
                 {
                     cfbfStream.Position = SectorPosition(sectorid);
-
                     var buffer = cfbfStream.ReadBytes(this.SectorSize);
-
-                    MSAT.AddRange(buffer.ToUInt32());
-                    
+                    MSAT.AddRange(buffer.ToUInt32());                    
                     sectorid = BitConverter.ToUInt32(buffer.ReadBytes(this.SectorSize - 4, 4), 0);
                 }
             }
@@ -213,7 +204,8 @@ namespace System.IO.CFBF
 
             foreach (var entry in DirectoryEntries)
             {
-                string s = string.Format("Direcotry Entry:{0}, Child ID: {1}, Left ID: {2}, Right ID: {3}", entry.DirectoryEntryName, entry.ChildID, entry.LeftSiblingID, entry.RightSiblingID);
+                //string s = string.Format("Direcotry Entry:{0}, Child ID: {1}, Left ID: {2}, Right ID: {3}", entry.DirectoryEntryName, entry.ChildID, entry.LeftSiblingID, entry.RightSiblingID);
+                string s = string.Format("Direcotry Entry:{0}({1},{2}, {3})", entry.DirectoryEntryName, entry.ChildID, entry.LeftSiblingID, entry.RightSiblingID);
                 writer.WriteLine(s);
             }
 
