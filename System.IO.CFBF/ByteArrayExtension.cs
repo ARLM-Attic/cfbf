@@ -113,5 +113,22 @@ namespace System.IO.CFBF
 
             return bytes;
         }
+
+        /// <summary>
+        /// Retrun a array 2 dimension from a ulong value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static uint[] ToUInt32Array( this ulong value)
+        {
+            uint[] retValue = new uint[2];            
+            byte[] buffer = BitConverter.GetBytes(value);            
+            var byteStream = new MemoryStream(buffer, false);
+            retValue[0] = BitConverter.ToUInt32(byteStream.ReadBytes(4), 0);
+            retValue[1] = BitConverter.ToUInt32(byteStream.ReadBytes(4), 0);
+            byteStream.Close();
+            byteStream.Dispose();            
+            return retValue;
+        }
     }
 }
