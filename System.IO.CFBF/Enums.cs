@@ -13,6 +13,10 @@ namespace System.IO.CFBF
 
         STREAM_OBJECT = 0x02,
 
+        LOCKBYTES = 0x03,
+        
+        PROPERTY = 0x04,
+
         ROOT_STORAGE_OBJECT = 0x05
     }
 
@@ -71,8 +75,8 @@ namespace System.IO.CFBF
 
     public enum ByteOrder : ushort
     { 
-        LITTLE_ENDIAN = 0xFEFF,
+        LITTLE_ENDIAN = 0xFFFE,
 
-        BIG_ENDIAN = 0xFFFE
+        BIG_ENDIAN = 0xFEFF
     }
 }
