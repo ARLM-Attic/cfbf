@@ -24,6 +24,13 @@ namespace System.IO.CFBF
                 + string.Format("{0:X}", DATA2).PadRight(8, '0') + "-"
                 + string.Format("{0:X}", DATA3).PadRight(8, '0');
         }
+
+        public CLASSID Empty
+        {
+            get {
+                return new CLASSID { DATA1=0, DATA2 = 0, DATA3 = 0};
+            }
+        }
     }
 
 }
