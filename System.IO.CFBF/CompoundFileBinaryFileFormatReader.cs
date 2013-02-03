@@ -19,6 +19,8 @@ namespace System.IO.CFBF
 
         private Stream cfbfStream = null;
 
+        private Stream ShortStreamContainerStream = null;
+
         internal uint[] MasterSectorAllocationTable
         {
             get;
@@ -114,13 +116,14 @@ namespace System.IO.CFBF
             #endregion
 
             #region DIRECTORY STORAGE
-            DirectoryEntries = readDirectoryStorage();
+            DirectoryEntries = ReadDirectoryStorage();
             #endregion
 
             #region SHORT ALLOCATION TABLE
             ShortSectorAllocationTable = ReadShortSectorAllocationTable();
             #endregion
 
+            ShortStreamContainerStream = GetDirectoryEntryStream(GetRootEntry());
             #endregion
         }        
 
@@ -213,7 +216,7 @@ namespace System.IO.CFBF
             writer.Dispose();
         }
 
-        private IList<DirectoryEntry> readDirectoryStorage()
+        private IList<DirectoryEntry> ReadDirectoryStorage()
         {
             IList<DirectoryEntry> Directories = new List<DirectoryEntry>();
             uint valueId = this.Header.FirstDirectorySectorLocation;
@@ -234,6 +237,23 @@ namespace System.IO.CFBF
             return Directories;
         }
 
+        //private uint[] ReadShortStreamContainerStream()
+        //{
+        //    var results = new List<uint>();
+        //    var root = GetRootEntry();
+        //    var secID = root.StartingSectorLocation;
+
+        //    while (secID != (uint)SectorName.ENDOFCHAIN)
+        //    {
+        //        cfbfStream.Position = SectorPosition(secID);
+        //        results.AddRange(ReadSectorChain(cfbfStream));
+
+        //        secID = SectorAllocationTable[secID];
+        //    }
+
+        //    return results.ToArray();
+        //}
+
         private Stream ReadShortStreamContainerStream(DirectoryEntry dir)
         {
             var outStream = new MemoryStream();
@@ -244,9 +264,9 @@ namespace System.IO.CFBF
 
             while (valueId != (uint)SectorName.ENDOFCHAIN)
             {
-                ulong amountToRead = bytesLeft < this.SectorSize ? bytesLeft : this.SectorSize;
-                cfbfStream.Position = SectorPosition(valueId);
-                outStream.Write(cfbfStream.ReadBytes((int)amountToRead), 0, (int)amountToRead);
+                ulong amountToRead = bytesLeft < 64 ? bytesLeft : 64;
+                ShortStreamContainerStream.Position = ShortSectorPosition(valueId);
+                outStream.Write(ShortStreamContainerStream.ReadBytes((int)amountToRead), 0, (int)amountToRead);
                 valueId = ShortSectorAllocationTable[valueId];
                 bytesLeft = bytesLeft - amountToRead;
             }
@@ -323,5 +343,11 @@ namespace System.IO.CFBF
         {
             return 512 + SecID * this.SectorSize;
         }
+
+        private long ShortSectorPosition(uint SecID)
+        {
+            return SecID * 64;
+        }
+
     }
 }
