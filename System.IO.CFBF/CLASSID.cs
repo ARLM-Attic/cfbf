@@ -25,6 +25,9 @@ namespace System.IO.CFBF
                 + string.Format("{0:X}", DATA3).PadRight(8, '0');
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public CLASSID Empty
         {
             get {
