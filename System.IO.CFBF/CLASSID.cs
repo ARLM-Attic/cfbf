@@ -20,9 +20,9 @@ namespace System.IO.CFBF
 
         public override string ToString()
         {
-            return string.Format("{0:X}", DATA1).PadRight(16, '0') + "-"
-                + string.Format("{0:X}", DATA2).PadRight(8, '0') + "-"
-                + string.Format("{0:X}", DATA3).PadRight(8, '0');
+            return string.Format("{0:X}", DATA1).PadLeft(16, '0') + "-"
+                + string.Format("{0:X}", DATA2).PadLeft(8, '0') + "-"
+                + string.Format("{0:X}", DATA3).PadLeft(8, '0');
         }
 
         /// <summary>
