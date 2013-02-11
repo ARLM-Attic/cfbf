@@ -206,10 +206,8 @@ namespace System.IO.CFBF
             StreamWriter writer = File.CreateText(filePath);
 
             foreach (var entry in DirectoryEntries)
-            {
-                //string s = string.Format("Direcotry Entry:{0}, Child ID: {1}, Left ID: {2}, Right ID: {3}", entry.DirectoryEntryName, entry.ChildID, entry.LeftSiblingID, entry.RightSiblingID);
-                string s = string.Format("Direcotry Entry:{0}({1},{2}, {3})", entry.DirectoryEntryName, entry.ChildID, entry.LeftSiblingID, entry.RightSiblingID);
-                writer.WriteLine(s);
+            {                
+                writer.WriteLine(entry.ToString());
             }
 
             writer.Close();
