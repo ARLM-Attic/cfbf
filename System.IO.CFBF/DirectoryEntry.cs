@@ -166,7 +166,18 @@ namespace System.IO.CFBF
 
         public override string ToString()
         {
- 	         return base.ToString();
+             string s = string.Format("Direcotry Entry:{0} (ChildID:{1}, Left: {2}, Right: {3})", DirectoryEntryName, ChildID, LeftSiblingID, RightSiblingID);
+ 	         return s;
+        }
+
+        public DateTime MODIFIED_TIME
+        {
+            get { return ModifiedTime.ToDateTime(); }
+        }
+
+        public DateTime CREATION_TIME
+        {
+            get { return CreationTime.ToDateTime(); }
         }
     }
   }
