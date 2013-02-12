@@ -60,6 +60,7 @@
     <Compile Include="SYSTEMTIME.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="info\compdocfileformat.pdf" />
     <None Include="info\WindowsCompoundBinaryFileFormatSpecification.pdf" />
     <None Include="info\[MS-CFB].pdf" />
   </ItemGroup>
