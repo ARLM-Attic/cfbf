@@ -91,7 +91,7 @@ namespace System.IO.CFBF
         /// parameter to launch applications.
         /// </summary>
         [FieldOffset(80)]
-        public CLASSID ClassID;
+        public CLSID ClassID;
 
         /// <summary>
         /// State Bits (4 bytes): This field contains the user-defined flags if this entry is a 

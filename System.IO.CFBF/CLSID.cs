@@ -7,7 +7,7 @@ using System.Text;
 namespace System.IO.CFBF
 {
     [StructLayout(LayoutKind.Explicit, Size = 16)]
-    public struct CLASSID
+    public struct CLSID
     {
         [FieldOffset(0)]
         public ulong DATA1;
@@ -28,10 +28,10 @@ namespace System.IO.CFBF
         /// <summary>
         /// 
         /// </summary>
-        public CLASSID Empty
+        public CLSID Empty
         {
             get {
-                return new CLASSID { DATA1=0, DATA2 = 0, DATA3 = 0};
+                return new CLSID { DATA1=0, DATA2 = 0, DATA3 = 0};
             }
         }
     }

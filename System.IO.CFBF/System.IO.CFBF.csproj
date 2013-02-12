@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteArrayExtension.cs" />
-    <Compile Include="CLASSID.cs" />
+    <Compile Include="CLSID.cs" />
     <Compile Include="CompoundFileBinaryFileFormatReader.cs" />
     <Compile Include="DirectoryEntry.cs" />
     <Compile Include="Enums.cs">

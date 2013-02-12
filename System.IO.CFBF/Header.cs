@@ -22,7 +22,7 @@ namespace System.IO.CFBF
         /// Header CLSID (16 bytes): Reserved and unused class ID that MUST be set to all zeroes (CLSID_NULL).
         /// </summary>
         [FieldOffset(8)]
-        public CLASSID HeaderCLSID;
+        public CLSID HeaderCLSID;
 
         /// <summary>
         /// Minor Version (2 bytes): Version number for non-breaking changes. This field SHOULD be set
