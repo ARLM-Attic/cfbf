@@ -179,5 +179,60 @@ namespace System.IO.CFBF
         {
             get { return CreationTime.ToDateTime(); }
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (obj is DirectoryEntry)
+            {
+                if (this.ChildID == ((DirectoryEntry)obj).ChildID
+                    && this.ClassID == ((DirectoryEntry)obj).ClassID
+                    && this.ColorFlag == ((DirectoryEntry)obj).ColorFlag
+                    && this.CREATION_TIME == ((DirectoryEntry)obj).CREATION_TIME)
+                    return true;
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public static DirectoryEntry Empty()
+        {
+            return new DirectoryEntry
+            {
+                ChildID = 0,
+                ClassID = CLSID.Empty(),
+                ColorFlag = ColorFlag.RED,
+                CreationTime= new FILETIME(),
+                DirectoryEntryName = null,
+                DirectoryEntryNameLength = 0,
+                LeftSiblingID = 0,
+                ModifiedTime = new FILETIME(),
+                ObjectType = ObjectType.UNKNOWN_OR_UNALLOCATED,
+                RightSiblingID = 0,
+                StartingSectorLocation = 0,
+                StateBits = 0,
+                StreamByte = 0
+            };
+        }
+
+        public static bool operator ==(DirectoryEntry de1, DirectoryEntry de2)
+        {
+            return de1.Equals(de2);
+        }
+
+        public static bool operator !=(DirectoryEntry de1, DirectoryEntry de2)
+        {
+            return !de1.Equals(de2);
+        }
+
     }
   }

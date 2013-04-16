@@ -28,10 +28,36 @@ namespace System.IO.CFBF
         /// <summary>
         /// 
         /// </summary>
-        public CLSID Empty
+        public static CLSID Empty()
         {
-            get {
                 return new CLSID { DATA1=0, DATA2 = 0, DATA3 = 0};
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public static bool operator ==(CLSID c1, CLSID c2)
+        {
+            return c1.Equals(c2);
+        }
+
+        public static bool operator !=(CLSID c1, CLSID c2)
+        {
+            return !c1.Equals(c2);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+            else
+            {
+                if (obj is CLSID)
+                    return (this.DATA1 == ((CLSID)obj).DATA1 && this.DATA2 == ((CLSID)obj).DATA2 && this.DATA3 == ((CLSID)obj).DATA3);
+                else
+                    return false;
             }
         }
     }
