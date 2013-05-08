@@ -73,7 +73,9 @@ namespace System.IO.CFBF
         DIFSECT = 0xFFFFFFC, //-4
     }
 
-
+    /// <summary>
+    /// 
+    /// </summary>
     public enum ByteOrder : ushort
     { 
         LITTLE_ENDIAN = 0xFFFE,
