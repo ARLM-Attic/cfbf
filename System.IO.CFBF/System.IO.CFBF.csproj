@@ -45,7 +45,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ByteArrayExtension.cs" />
     <Compile Include="CLSID.cs" />
     <Compile Include="CompoundFileBinaryFileFormatReader.cs" />
     <Compile Include="DirectoryEntry.cs" />
@@ -63,6 +62,12 @@
     <None Include="info\compdocfileformat.pdf" />
     <None Include="info\WindowsCompoundBinaryFileFormatSpecification.pdf" />
     <None Include="info\[MS-CFB].pdf" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SSL.Util\SSL.Util.csproj">
+      <Project>{ece06298-0e58-4825-b2a6-0097245ad796}</Project>
+      <Name>SSL.Util</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
