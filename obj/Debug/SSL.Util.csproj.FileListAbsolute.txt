@@ -1,0 +1,5 @@
+C:\Progetti\SSL.Util\bin\Debug\SSL.Util.dll
+C:\Progetti\SSL.Util\bin\Debug\SSL.Util.pdb
+C:\Progetti\SSL.Util\obj\Debug\SSL.Util.csprojResolveAssemblyReference.cache
+C:\Progetti\SSL.Util\obj\Debug\SSL.Util.dll
+C:\Progetti\SSL.Util\obj\Debug\SSL.Util.pdb
