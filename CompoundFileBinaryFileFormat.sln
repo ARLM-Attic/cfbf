@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.IO.CFBF", "..\System.IO.CFBF\System.IO.CFBF.csproj", "{0EE22806-5FC6-4F33-9D19-68F455D99C53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Outlook.MSG", "..\Outlook.MSG\Outlook.MSG.csproj", "{71CF1CD3-72F4-4BCE-946C-10A7FBD73E36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Outlook.PST", "..\Microsoft.PST\Outlook.PST.csproj", "{7270F88A-8195-45AF-9CDE-533740C01E24}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SSL.Util", "..\SSL.Util\SSL.Util.csproj", "{ECE06298-0E58-4825-B2A6-0097245AD796}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingProjectOutlookSolution", "..\TestingProjectOutlookSolution\TestingProjectOutlookSolution.csproj", "{694DB1C9-435C-4C6F-A41A-71B880F7069F}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 2
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs21
+		SccProjectUniqueName0 = ..\\Outlook.MSG\\Outlook.MSG.csproj
+		SccProjectName0 = ../msg/Outlook.MSG
+		SccAuxPath0 = https://tfs.codeplex.com/tfs/tfs21
+		SccLocalPath0 = ..\\Outlook.MSG
+		SccProvider0 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccProjectUniqueName1 = ..\\System.IO.CFBF\\System.IO.CFBF.csproj
+		SccProjectName1 = System.IO.CFBF
+		SccAuxPath1 = https://tfs.codeplex.com/tfs/tfs21
+		SccLocalPath1 = ..\\System.IO.CFBF
+		SccProvider1 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0EE22806-5FC6-4F33-9D19-68F455D99C53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EE22806-5FC6-4F33-9D19-68F455D99C53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EE22806-5FC6-4F33-9D19-68F455D99C53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EE22806-5FC6-4F33-9D19-68F455D99C53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71CF1CD3-72F4-4BCE-946C-10A7FBD73E36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71CF1CD3-72F4-4BCE-946C-10A7FBD73E36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71CF1CD3-72F4-4BCE-946C-10A7FBD73E36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71CF1CD3-72F4-4BCE-946C-10A7FBD73E36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7270F88A-8195-45AF-9CDE-533740C01E24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7270F88A-8195-45AF-9CDE-533740C01E24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7270F88A-8195-45AF-9CDE-533740C01E24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7270F88A-8195-45AF-9CDE-533740C01E24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECE06298-0E58-4825-B2A6-0097245AD796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECE06298-0E58-4825-B2A6-0097245AD796}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECE06298-0E58-4825-B2A6-0097245AD796}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECE06298-0E58-4825-B2A6-0097245AD796}.Release|Any CPU.Build.0 = Release|Any CPU
+		{694DB1C9-435C-4C6F-A41A-71B880F7069F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{694DB1C9-435C-4C6F-A41A-71B880F7069F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{694DB1C9-435C-4C6F-A41A-71B880F7069F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{694DB1C9-435C-4C6F-A41A-71B880F7069F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
